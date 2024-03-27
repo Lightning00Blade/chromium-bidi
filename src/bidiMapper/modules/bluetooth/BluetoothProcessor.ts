@@ -15,11 +15,7 @@
  * limitations under the License.
  */
 
-import {
-  NoSuchFrameException,
-  type Bluetooth,
-  type EmptyResult,
-} from '../../../protocol/protocol.js';
+import type {Bluetooth, EmptyResult} from '../../../protocol/protocol.js';
 import type {BrowsingContextStorage} from '../context/BrowsingContextStorage.js';
 import type {CdpTarget} from '../context/CdpTarget.js';
 import type {EventManager} from '../session/EventManager.js';
@@ -56,10 +52,8 @@ export class BluetoothProcessor {
   async handleRequestDevicePrompt(
     params: Bluetooth.HandleRequestDevicePromptParameters
   ): Promise<EmptyResult> {
-    const context = this.#browsingContextStorage.findContext(params.context);
-    if (!context) {
-      throw new NoSuchFrameException('context not found');
-    }
+    const context = this.#browsingContextStorage.getContext(params.context);
+
     if (params.accept) {
       await context.cdpTarget.cdpClient.sendCommand(
         'DeviceAccess.selectPrompt',
