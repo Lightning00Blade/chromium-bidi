@@ -21,7 +21,7 @@ import type {CdpClient} from '../../../cdp/CdpClient.js';
 import {BiDiModule} from '../../../protocol/chromium-bidi.js';
 import type {ChromiumBidi} from '../../../protocol/protocol.js';
 import {Deferred} from '../../../utils/Deferred.js';
-import type {LoggerFn} from '../../../utils/log.js';
+import {LogType, type LoggerFn} from '../../../utils/log.js';
 import type {Result} from '../../../utils/result.js';
 import type {BrowsingContextStorage} from '../context/BrowsingContextStorage.js';
 import {LogManager} from '../log/LogManager.js';
@@ -36,6 +36,7 @@ export class CdpTarget {
   readonly #cdpClient: CdpClient;
   readonly #browserCdpClient: CdpClient;
   readonly #eventManager: EventManager;
+  readonly #logger?: LoggerFn;
 
   readonly #preloadScriptStorage: PreloadScriptStorage;
   readonly #browsingContextStorage: BrowsingContextStorage;
@@ -71,7 +72,8 @@ export class CdpTarget {
       preloadScriptStorage,
       browsingContextStorage,
       networkStorage,
-      acceptInsecureCerts
+      acceptInsecureCerts,
+      logger
     );
 
     LogManager.create(cdpTarget, realmStorage, eventManager, logger);
@@ -93,7 +95,8 @@ export class CdpTarget {
     preloadScriptStorage: PreloadScriptStorage,
     browsingContextStorage: BrowsingContextStorage,
     networkStorage: NetworkStorage,
-    acceptInsecureCerts: boolean
+    acceptInsecureCerts: boolean,
+    logger?: LoggerFn
   ) {
     this.#id = targetId;
     this.#cdpClient = cdpClient;
@@ -103,6 +106,7 @@ export class CdpTarget {
     this.#networkStorage = networkStorage;
     this.#browsingContextStorage = browsingContextStorage;
     this.#acceptInsecureCerts = acceptInsecureCerts;
+    this.#logger = logger;
   }
 
   /** Returns a deferred that resolves when the target is unblocked. */
@@ -203,7 +207,18 @@ export class CdpTarget {
         handleAuthRequests: stages.auth,
       });
     } else {
-      await this.#cdpClient.sendCommand('Fetch.disable');
+      const blockedRequest = this.#networkStorage
+        .getRequestsByTarget(this)
+        .filter((request) => request.interceptPhase);
+      void Promise.allSettled(
+        blockedRequest.map((request) => request.waitNextPhase)
+      )
+        .then(async () => {
+          return await this.#cdpClient.sendCommand('Fetch.disable');
+        })
+        .catch((error) => {
+          this.#logger?.(LogType.bidi, 'Disable failed', error);
+        });
     }
   }
 
