@@ -245,7 +245,7 @@ export class CdpTarget {
     }
   }
 
-  async #disableFetch() {
+  async #disableFetch(network: boolean) {
     const blockedRequest = this.#networkStorage
       .getRequestsByTarget(this)
       .filter((request) => request.interceptPhase);
@@ -257,6 +257,7 @@ export class CdpTarget {
     void Promise.all(blockedRequest.map((request) => request.waitNextPhase))
       .then(async () => {
         await this.#cdpClient.sendCommand('Fetch.disable');
+        await this.#toggleNetwork(network);
         return;
       })
       .catch((error) => {
@@ -290,16 +291,7 @@ export class CdpTarget {
       await this.#enableFetch(stages);
     }
     if (!fetchEnable && fetchChanged) {
-      void this.#disableFetch()
-        .then(async () => {
-          if (!networkEnable && networkChanged) {
-            return await this.#toggleNetwork(false);
-          }
-          return;
-        })
-        .catch((error) => {
-          this.#logger?.(LogType.bidi, 'Disable failed', error);
-        });
+      await this.#disableFetch(!networkEnable && networkChanged);
     }
 
     if (!networkEnable && networkChanged && !fetchEnable && !fetchChanged) {
