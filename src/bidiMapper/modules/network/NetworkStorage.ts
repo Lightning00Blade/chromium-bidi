@@ -74,8 +74,7 @@ export class NetworkStorage {
    */
   #getOrCreateNetworkRequest(
     id: Network.Request,
-    cdpTarget: CdpTarget,
-    redirectCount?: number
+    cdpTarget: CdpTarget
   ): NetworkRequest {
     let request = this.getRequestById(id);
     if (request) {
@@ -87,7 +86,6 @@ export class NetworkStorage {
       this.#eventManager,
       this,
       cdpTarget,
-      redirectCount,
       this.#logger
     );
 
@@ -104,22 +102,10 @@ export class NetworkStorage {
       [
         'Network.requestWillBeSent',
         (params: Protocol.Network.RequestWillBeSentEvent) => {
-          const request = this.getRequestById(params.requestId);
-
-          if (request && request.isRedirecting()) {
-            request.handleRedirect(params);
-            this.deleteRequest(params.requestId);
-            this.#getOrCreateNetworkRequest(
-              params.requestId,
-              cdpTarget,
-              request.redirectCount + 1
-            ).onRequestWillBeSentEvent(params);
-          } else {
-            this.#getOrCreateNetworkRequest(
-              params.requestId,
-              cdpTarget
-            ).onRequestWillBeSentEvent(params);
-          }
+          this.#getOrCreateNetworkRequest(
+            params.requestId,
+            cdpTarget
+          ).onRequestWillBeSentEvent(params);
         },
       ],
       [

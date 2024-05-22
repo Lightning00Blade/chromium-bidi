@@ -66,7 +66,7 @@ export class NetworkRequest {
 
   #servedFromCache = false;
 
-  #redirectCount: number;
+  #redirectCount = 0;
 
   #request: {
     info?: Protocol.Network.RequestWillBeSentEvent;
@@ -102,14 +102,12 @@ export class NetworkRequest {
     eventManager: EventManager,
     networkStorage: NetworkStorage,
     cdpTarget: CdpTarget,
-    redirectCount = 0,
     logger?: LoggerFn
   ) {
     this.#id = id;
     this.#eventManager = eventManager;
     this.#networkStorage = networkStorage;
     this.#cdpTarget = cdpTarget;
-    this.#redirectCount = redirectCount;
     this.#logger = logger;
   }
 
@@ -166,10 +164,6 @@ export class NetworkRequest {
     return this.#cdpTarget.cdpClient;
   }
 
-  isRedirecting(): boolean {
-    return Boolean(this.#request.info);
-  }
-
   isDataUrl(): boolean {
     return this.url.startsWith('data:');
   }
@@ -199,6 +193,10 @@ export class NetworkRequest {
     this.#emitEventsIfReady({
       wasRedirected: true,
     });
+    // Reset the event data
+    this.#request = {};
+    this.#response = {};
+    this.#redirectCount += 1;
   }
 
   #emitEventsIfReady(
@@ -274,6 +272,9 @@ export class NetworkRequest {
   }
 
   onRequestWillBeSentEvent(event: Protocol.Network.RequestWillBeSentEvent) {
+    if (this.#request.info) {
+      this.handleRedirect(event);
+    }
     this.#request.info = event;
     this.#emitEventsIfReady();
   }
