@@ -2,6 +2,21 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.5.20](https://github.com/GoogleChromeLabs/chromium-bidi/compare/chromium-bidi-v0.5.19...chromium-bidi-v0.5.20) (2024-05-22)
+
+
+### Features
+
+* support document as `startNodes` in `browsingContext.locateNodes` ([#2218](https://github.com/GoogleChromeLabs/chromium-bidi/issues/2218)) ([ad7318f](https://github.com/GoogleChromeLabs/chromium-bidi/commit/ad7318f29ff91831583ee67173ea3322672f1640))
+* support for graphemes in key input ([#2207](https://github.com/GoogleChromeLabs/chromium-bidi/issues/2207)) ([8e3a6c0](https://github.com/GoogleChromeLabs/chromium-bidi/commit/8e3a6c03ddfdc58c73d542d0bf960b890a1ba46b))
+
+
+### Bug Fixes
+
+* added missing input transformations ([#2186](https://github.com/GoogleChromeLabs/chromium-bidi/issues/2186)) ([ea48dc2](https://github.com/GoogleChromeLabs/chromium-bidi/commit/ea48dc2d238d884d5d25a4fa623fed1ad591343b))
+* css locator should allow nodes to be start nodes ([#2195](https://github.com/GoogleChromeLabs/chromium-bidi/issues/2195)) ([4a361a5](https://github.com/GoogleChromeLabs/chromium-bidi/commit/4a361a541dc134656cb0b2207d20c4f47ba3c8ce))
+* screenshot taken in scrolled viewport origin ([#2161](https://github.com/GoogleChromeLabs/chromium-bidi/issues/2161)) ([b3c57c8](https://github.com/GoogleChromeLabs/chromium-bidi/commit/b3c57c83fdef42dc96d017d7fba02faae36b0595))
+
 ## [0.5.19](https://github.com/GoogleChromeLabs/chromium-bidi/compare/chromium-bidi-v0.5.18...chromium-bidi-v0.5.19) (2024-04-24)
 
 
